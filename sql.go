@@ -35,13 +35,14 @@ func ErrorConv(passedError error) (string) {
 	return string(passedError.(*pq.Error).Code)
 }
 
-// Open opens the database connection, zeros the auth data, and makes the maps and slices
+// Open opens the database connection, and makes the maps of precompiled statements
 func (d *DBConfig) Open() error {
- defer func(){
+	/* I used to zero auth data but now I'm worried about reconnecting 
+	defer func(){
 	 d.User = ""
 	 d.Password = ""
 	 d.Name = ""
- }()
+ }() */
 
   dbinfo := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable",
 	  d.User,
@@ -49,10 +50,10 @@ func (d *DBConfig) Open() error {
 		d.Name)
   var err error
   if d.DB, err = sql.Open("postgres", dbinfo); err != nil {
-    log.Errorf("justSql: Error opening database: %v", err);
+    log.Errorf("justSql, .Open(): Error opening database: %v", err);
     return err
   } else if _, err = d.DB.Exec("SELECT 1"); err != nil {
-    log.Errorf("justSql: Error opening database after test: %v", err);
+		log.Errorf("justSql: .Open(): Error opening database after test: %v", err);
     return err
   }
 
@@ -68,11 +69,11 @@ func (d *DBConfig) Close() error {
 // pushStmt writes to a map while also compiling a sql statement.
 func (d *DBConfig) PushStmt(nameString string, queryString string) (*sql.Stmt, error) {
 	if gotStmt, ok := d.stmtsMap[nameString]; ok {
-    log.Enterf("justSql: Tried to add statement that already exists.")
+    log.Enterf("justSql, .PushStmt(): Tried to add statement that already exists.")
     return gotStmt, ErrStmtConflict
   }
 	if queryStatement, err := d.DB.Prepare(queryString); err != nil {
-		log.Errorf("justSql: Some kind of database error: %v", err)
+		log.Errorf("justSql, .PushStmt(): Some kind of database error: %v", err)
     return nil, err
   } else {
 		d.stmtsMap[nameString] = queryStatement
@@ -87,6 +88,9 @@ func (d *DBConfig) GetStmt(nameString string) (*sql.Stmt) {
 }
 
 /*
+
+There is already a golang sql utility wrapper for structure/map queries. 
+
 // these should be structures, and there should be receivers for each type of query. i guess they take the db as an argument
 func (d *DBinst) Insert(table string, cols []string, values []string) // should these be struct pointers with all these values
 func (d *DBinst) Update(table string, cols []string,  values []string, where_col []string, where_val []string)
