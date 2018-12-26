@@ -1,7 +1,7 @@
-package justSQL
 /* 
 package justSQL presents a configuration structure you can use to open and close a database connection. It also allows you to register common SQL queries into a map (by name), and other modules can then look up SQL queries they need and shared them. You do not lookup queries through the map on every call, only when your module is initialized, as they return a pointer to the actual value. This adds some pressure to the garbage collector, and I wish there was a way to take over manual control of memory.
 */
+package justSQL
 
 import (
   "database/sql"
