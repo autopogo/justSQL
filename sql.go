@@ -11,6 +11,8 @@ import (
   log "github.com/autopogo/justLogging"
 )
 
+// TODO jSQL multirow process
+
 // DBInst is a configuration structure for SQL. The auth will be zero'd once its opened.
 type DBConfig struct {
  User       string
