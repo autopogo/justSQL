@@ -35,7 +35,7 @@ func ErrorConv(passedError error) string {
 
 
 // Open opens the database connection, and makes the maps of precompiled statements
-func (d *DBConfig) Open(user, pass, name) error {
+func (d *DBConfig) Open(user, pass, name string) error {
 	var err error
 	dbinfo := fmt.Sprintf("user=%s password=%s dbname=%s host=%s",
 		user,
