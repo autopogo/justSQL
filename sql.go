@@ -19,7 +19,6 @@ type DBConfig struct {
 	Password string
 	Name     string
 	DB       *sql.DB
-	stmtsMap map[string]*sql.Stmt
 }
 
 // The starting size of the statements map
@@ -59,7 +58,6 @@ func (d *DBConfig) Open() error {
 		return err
 	}
 
-	d.stmtsMap = make(map[string]*sql.Stmt, numStatements)
 	return nil
 }
 
@@ -70,65 +68,9 @@ func (d *DBConfig) Close() error {
 
 // pushStmt writes to a map while also compiling a sql statement.
 func (d *DBConfig) PushStmt(nameString string, queryString string) (*sql.Stmt, error) {
-	if gotStmt, ok := d.stmtsMap[nameString]; ok {
-		log.Enterf("justSql, .PushStmt(): Tried to add statement that already exists.")
-		return gotStmt, ErrStmtConflict
-	}
 	if queryStatement, err := d.DB.Prepare(queryString); err != nil {
 		log.Errorf("justSql, .PushStmt(): Some kind of database error: %v", err)
 		return nil, err
-	} else {
-		d.stmtsMap[nameString] = queryStatement
-		return d.stmtsMap[nameString], nil
 	}
-	// We're pressuring go's gc because it has to do escape analysis on this. Unsafe pointers would solve this maybe? In C, we do manual memory management, so we could just say "Hey let this live until the program dies, don't worry about it."
 }
 
-// getStmt is just a shim for the statement map
-func (d *DBConfig) GetStmt(nameString string) *sql.Stmt {
-	return d.stmtsMap[nameString]
-}
-
-/*
-
-There is already a golang sql utility wrapper for structure/map queries.
-
-// these should be structures, and there should be receivers for each type of query. i guess they take the db as an argument
-func (d *DBinst) Insert(table string, cols []string, values []string) // should these be struct pointers with all these values
-func (d *DBinst) Update(table string, cols []string,  values []string, where_col []string, where_val []string)
-func (d *DBinst) Delete(table string, where_col []string, where_val []string)
-func (d *DBinst) Select(table string, cols []string, where_col []string, where_val []string)
-func (d *DBinst) InnerJoin(ltable string,
-	rtable string,
-	cols []string,
-	lcols []string,
-	rcols []string,
-	where_col []string,
-	where_val []string)
-func (d *DBinst) LeftJoin(ltable string,
-	rtable string,
-	cols []string,
-	lcols []string,
-	rcols []string,
-	where_col []string,
-	where_val []string)
-func (d *DBinst) RightJoin(ltable string,
-	rtable string,
-	cols []string,
-	lcols []string,
-	rcols []string,
-	where_col []string,
-	where_val []string)
-func (d *DBinst) FullJoin(ltable string,
-	rtable string,
-	cols []string,
-	lcols []string,
-	rcols []string,
-	where_col []string,
-	where_val []string)
-//func (d *DBinst) query( // an interator: next, and scan
-//func (d *DBinst) exec(
-
-// write a receiver for init, make it like open
-// write a receive for close- close all the statements
-*/
