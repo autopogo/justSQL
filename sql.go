@@ -8,7 +8,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	log "github.com/autopogo/justLogging"
 
 	pq "github.com/lib/pq"
 )
@@ -41,10 +40,8 @@ func (d *DBConfig) Open(user, pass, name, host string) error {
 		name,
 		host)
 	if d.DB, err = sql.Open("postgres", dbinfo); err != nil {
-		log.Errorf("justSql, .Open(): Error opening database: %v", err)
 		return err
 	} else if _, err = d.DB.Exec("SELECT 1"); err != nil {
-		log.Errorf("justSql: .Open(): Error opening database after test: %v", err)
 		return err
 	}
 
@@ -60,7 +57,6 @@ func (d *DBConfig) Close() error {
 func (d *DBConfig) Stmt(queryString string) (*sql.Stmt, error) {
 	queryStatement, err := d.DB.Prepare(queryString);
 	if err != nil {
-		log.Errorf("justSql, .PushStmt(): Some kind of database error: %v", err)
 		return nil, err
 	}
 	return queryStatement, err
