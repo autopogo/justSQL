@@ -1,6 +1,7 @@
 /*
-package justSQL presents a configuration structure you can use to open and close a database connection. It also allows you to register common SQL queries into a map (by name), and other modules can then look up SQL queries they need and shared them. You do not lookup queries through the map on every call, only when your module is initialized, as they return a pointer to the actual value. This adds some pressure to the garbage collector, and I wish there was a way to take over manual control of memory. It's helper, doesn't fully wrap
+package justSQL is just a helper function. You should build statements and create functions to use them.
 */
+
 package justSQL
 
 import (
@@ -8,23 +9,18 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/autopogo/justLogging"
+
 	pq "github.com/lib/pq"
 )
 
-// TODO jSQL multirow process
-
 // DBInst is a configuration structure for SQL. The auth will be zero'd once its opened.
 type DBConfig struct {
-	User     string
-	Password string
-	Name     string
+	user     string
+	password string
+	name     string
+	host		string
 	DB       *sql.DB
 }
-
-// The starting size of the statements map
-const (
-	numStatements int = 50 // numStatements is the default map size
-)
 
 // The only unique error for this package so far
 var (
@@ -36,20 +32,16 @@ func ErrorConv(passedError error) string {
 	return string(passedError.(*pq.Error).Code)
 }
 
-// Open opens the database connection, and makes the maps of precompiled statements
-func (d *DBConfig) Open() error {
-	/* I used to zero auth data but now I'm worried about reconnecting
-		defer func(){
-		 d.User = ""
-		 d.Password = ""
-		 d.Name = ""
-	 }() */
 
-	dbinfo := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable",
-		d.User,
-		d.Password,
-		d.Name)
+
+// Open opens the database connection, and makes the maps of precompiled statements
+func (d *DBConfig) Open(user, pass, name) error {
 	var err error
+	dbinfo := fmt.Sprintf("user=%s password=%s dbname=%s host=%s",
+		user,
+		password,
+		name,
+		host)
 	if d.DB, err = sql.Open("postgres", dbinfo); err != nil {
 		log.Errorf("justSql, .Open(): Error opening database: %v", err)
 		return err
@@ -66,11 +58,13 @@ func (d *DBConfig) Close() error {
 	return d.DB.Close()
 }
 
-// pushStmt writes to a map while also compiling a sql statement.
-func (d *DBConfig) PushStmt(nameString string, queryString string) (*sql.Stmt, error) {
-	if queryStatement, err := d.DB.Prepare(queryString); err != nil {
+// stmt writes to a map while also compiling a sql statement.
+func (d *DBConfig) Stmt(queryString string) (*sql.Stmt, error) {
+	queryStatement, err := d.DB.Prepare(queryString);
+	if err != nil {
 		log.Errorf("justSql, .PushStmt(): Some kind of database error: %v", err)
 		return nil, err
 	}
+	return queryStatement, err
 }
 
