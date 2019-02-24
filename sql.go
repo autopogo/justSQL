@@ -32,13 +32,14 @@ func ErrorConv(passedError error) string {
 }
 
 // Open opens the database connection, and makes the maps of precompiled statements
-func (d *DBConfig) Open(user, pass, name, host string) error {
+func (d *DBConfig) Open(user, pass, name, host, options string) error {
 	var err error
-	dbinfo := fmt.Sprintf("user=%s password=%s dbname=%s host=%s",
+	dbinfo := fmt.Sprintf("user=%s password=%s dbname=%s host=%s %s",
 		user,
 		pass,
 		name,
-		host)
+		host, 
+		options)
 	if d.DB, err = sql.Open("postgres", dbinfo); err != nil {
 		return err
 	} else if _, err = d.DB.Exec("SELECT 1"); err != nil {
