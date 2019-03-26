@@ -23,7 +23,7 @@ type DBConfig struct {
 
 // The only unique error for this package so far
 var (
-	ErrStmtConflict = errors.New("justSQL: Tried to create two statements of the same name")
+	ErrStmtConflict = errors.New("justSQL: Tried to create two statements of the same name. Reduced.")
 )
 
 // ErrorConv converts a standard error message to its SQL State code, so we can interpret the error if we need to. Eg, "unique conflict" would be 23505.
